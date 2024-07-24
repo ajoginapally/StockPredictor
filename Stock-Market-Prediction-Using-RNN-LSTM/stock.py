@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow.keras.regularizers import l2
 
-
 def analyzeStockData(companyName: str, df: pd.DataFrame):
     # Print the company name in uppercase with stars
     print("************************************* ")
@@ -186,7 +185,16 @@ def visualize_predictions(df: pd.DataFrame, predictions: pd.Series, train_size: 
 
 
 def create_sequences(data, seq_length):
-    
+    """
+    Create sequences of data for LSTM.
+
+    Parameters:
+        data (np.ndarray): The input data.
+        seq_length (int): Length of each sequence.
+
+    Returns:
+        np.ndarray, np.ndarray: Input sequences and corresponding target values.
+    """
     x = []
     y = []
     for i in range(seq_length, len(data)):
@@ -195,7 +203,17 @@ def create_sequences(data, seq_length):
     return np.array(x), np.array(y)
 
 def prepare_lstm_data(scaled_data, seq_length, train_split=0.8):
+    """
+    Prepare data for LSTM training.
 
+    Parameters:
+        scaled_data (np.ndarray): Scaled input data.
+        seq_length (int): Length of each sequence.
+        train_split (float): Percentage of data to use for training.
+
+    Returns:
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray, int: Training and testing data along with the size of the training data.
+    """
     # Split into training and testing datasets
     train_size = int(len(scaled_data) * train_split)
     train_data = scaled_data[:train_size]
@@ -212,7 +230,15 @@ def prepare_lstm_data(scaled_data, seq_length, train_split=0.8):
 
 
 def build_lstm_model(input_shape):
-   
+    """
+    Build LSTM model with increased units and additional dense layers.
+
+    Parameters:
+        input_shape (tuple): Shape of input data.
+
+    Returns:
+        keras.Sequential: Compiled LSTM model.
+    """
     model = Sequential()
     model.add(LSTM(units=128, return_sequences=True, input_shape=input_shape))
     model.add(Dropout(0.2))
@@ -221,11 +247,19 @@ def build_lstm_model(input_shape):
     model.add(Dense(64, activation='relu'))
     model.add(Dense(32, activation='relu'))
     model.add(Dense(1))
-    model.compile(optimizer='SGD', loss='mean_squared_error', metrics=['mse'])
+    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mse'])
     return model
 
 def build_lstm_model_2(input_shape):
-    
+    """
+    Build LSTM model with increased units, adjusted dropout rate, and different activation functions.
+
+    Parameters:
+        input_shape (tuple): Shape of input data.
+
+    Returns:
+        keras.Sequential: Compiled LSTM model.
+    """
     model = Sequential()
     model.add(LSTM(units=64, return_sequences=True, input_shape=input_shape))  # Increased units
     model.add(Dropout(0.3))  # Adjusted dropout rate
@@ -233,34 +267,67 @@ def build_lstm_model_2(input_shape):
     model.add(Dropout(0.3))  # Adjusted dropout rate
     model.add(Dense(16, activation='relu'))  # Experiment with different activation function
     model.add(Dense(1))
-    model.compile(optimizer='SGD', loss='mean_squared_error')
+    model.compile(optimizer='adam', loss='mean_squared_error')
     return model
 
 def build_lstm_model_3(input_shape):
-    
+    """
+    Build LSTM model with increased units, adjusted dropout rate, and different activation functions.
+
+    Parameters:
+        input_shape (tuple): Shape of input data.
+
+    Returns:
+        keras.Sequential: Compiled LSTM model.
+    """
     model = Sequential()
     model.add(LSTM(units=64, return_sequences=False, input_shape=input_shape))  # Increased units
     model.add(Dropout(0.3))  # Adjusted dropout rate
     model.add(Dense(32, activation='relu'))  # Experiment with different activation function
     model.add(Dropout(0.3))  # Adjusted dropout rate
     model.add(Dense(1))
-    model.compile(optimizer='SGD', loss='mean_squared_error')
+    model.compile(optimizer='adam', loss='mean_squared_error')
     return model
 
 
 
 def calculate_mape(y_true, y_pred):
-    
+    """
+    Calculate Mean Absolute Percentage Error (MAPE) between true and predicted values.
+
+    Parameters:
+        y_true (numpy.ndarray): Array of true values.
+        y_pred (numpy.ndarray): Array of predicted values.
+
+    Returns:
+        float: Mean Absolute Percentage Error (MAPE) in percentage.
+    """
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 def compute_regression_accuracy(y_true, y_pred, threshold):
-    
+    """
+    Compute regression accuracy based on a threshold.
+
+    Parameters:
+        y_true (numpy.ndarray): Array of true values.
+        y_pred (numpy.ndarray): Array of predicted values.
+        threshold (float): Threshold value for considering predictions as correct.
+
+    Returns:
+        float: Accuracy percentage.
+    """
     correct_predictions = np.abs(y_true - y_pred) <= threshold
     accuracy = np.mean(correct_predictions) * 100
     return accuracy
 
 def print_threshold_table(y_true, y_pred):
-    
+    """
+    Print a table of accuracy for different threshold percentages.
+
+    Parameters:
+        y_true (numpy.ndarray): Array of true values.
+        y_pred (numpy.ndarray): Array of predicted values.
+    """
     thresholds = [0.01, 0.02, 0.03, 0.05]  # Threshold percentages
     print("\nThreshold (%) | Accuracy")
     print("--------------------------")
@@ -269,8 +336,24 @@ def print_threshold_table(y_true, y_pred):
         print(f"{threshold * 100: <14.0f}| {accuracy:.2f}%")
 
 
+
+
 def run_lstm_stock_prediction(df, seq_length, scaled_data, scaler, epochs=5, batch_size=32, validation_split=0.2):
-   
+    """
+    Run LSTM stock price prediction for multiple models, print evaluation metrics, and visualize predictions.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing the stock data.
+        seq_length (int): Sequence length for creating input sequences.
+        scaled_data (np.ndarray): Scaled stock data.
+        scaler: Scaler object used for scaling the data.
+        epochs (int): Number of epochs for training the models.
+        batch_size (int): Batch size for training the models.
+        validation_split (float): Fraction of training data to use for validation.
+
+    Returns:
+        None
+    """
     # Generate Data
     x_train, y_train, x_test, y_test, train_size = prepare_lstm_data(scaled_data, seq_length)
 
@@ -302,34 +385,56 @@ def run_lstm_stock_prediction(df, seq_length, scaled_data, scaler, epochs=5, bat
         # Visualize predictions
         visualize_predictions(df, predictions, train_size)
 
+
+
 def predict_stock_data(company_name, filename, seq_length, epochs, batch_size, validation_split):
-    
+    """
+    Predict stock data using LSTM models.
+
+    Parameters:
+        company_name (str): Name of the company.
+        filename (str): Path to the CSV file containing stock data.
+        seq_length (int): Sequence length for creating input sequences.
+        epochs (int): Number of epochs for training the models.
+        batch_size (int): Batch size for training the models.
+        validation_split (float): Fraction of training data to use for validation.
+
+    Returns:
+        None
+    """
+    # Read data from file
     df = pd.read_csv(filename)
     df.columns = df.columns.str.strip()
     df['Date'] = pd.to_datetime(df['Date'])
 
+    # Filter data from 2010-01-01
     df = df.loc[df['Date'] > '2010-01-01']
 
+    # Rename 'Close/Last' column to 'Close' if present
     if 'Close' not in df.columns and 'Close/Last' in df.columns:
         df = df.rename(columns={'Close/Last': 'Close'})
 
+    # Set 'Date' column as index
     df.set_index('Date', inplace=True)
 
+    # Analyze and plot stock data
     analyzeStockData(company_name, df)
     plot_stock_data(df)
 
+    # Extract 'Close' prices
     data = df['Close'].values
 
+    # Normalize the dataset using MinMaxScaler
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(data.reshape(-1, 1))
 
+    # Model prediction
     run_lstm_stock_prediction(df, seq_length, scaled_data, scaler, epochs, batch_size, validation_split)
 
-predict_stock_data(company_name="META",
-                   filename="META.csv",
+
+predict_stock_data(company_name="GOOGLE",
+                   filename="GOOGL.csv",
                    seq_length=60,
                    epochs=8,
                    batch_size=32,
                    validation_split=0.2)
-
-print("all Done!")
